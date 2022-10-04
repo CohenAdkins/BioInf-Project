@@ -9,11 +9,19 @@ library(DESeq2)
 # Check working Directory
 getwd()
 
-# Imports Count Data
+# Imports Count Data and Reformats
 countData <- read.csv("combinedCountFile.csv", header=TRUE, sep=",", row.names = 1)
+colnames(countData) <- c(sapply(colnames(countData), function(x){substr(x,0, 10)}))
 
-# Imports Meta Data
-metaData <- read.delim("GSE212377_series_matrix.txt", sep="\t", header=TRUE)
+# Imports and Pre-processes Meta Data
+metaData <- read.delim("GSE212377_series_matrix.txt", sep="\t", header=FALSE)
+table(sapply(metaData[1, ], function(x){substr(x, 13, nchar(x))}))
+metaData[3, ] <- sapply(metaData[1, ], function(x){substr(x, 13, nchar(x))})
+colnames(metaData) <- metaData[2,]
+metaData <- t(metaData)
+colnames(metaData) <- c('ExtHistology', 'SampleID', 'Histology')
+metaData <- metaData[-1,]
+metaData
 # HERE need to extract and clean up a useful component from this metadata
 # HOWEVER it appears that all the data here is homogenous and therefore of no use ??
 
