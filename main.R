@@ -1,10 +1,18 @@
-# Script following video tutorial
+# Install Packages
+install.packages("dplyr")
+BiocManager::install("DESeq2")
+install.packages("tidyverse")
+BiocManager::install("GEOquery")
+BiocManager::install("org.Hs.eg.db") 
+BiocManager::install("M3C")
+install.packages("ggplot2")
+library("ggplot2")
+library(M3C)
+library("org.Hs.eg.db")
 library(dplyr)
 library(tidyverse)
-BiocManager::install("GEOquery")
 library(GEOquery)
-BiocManager::install("DESeq2")
-library(DESeq2)
+library("DESeq2")
 
 # Check working Directory
 getwd()
@@ -21,27 +29,19 @@ colnames(metaData) <- metaData[2,]
 metaData <- t(metaData)
 colnames(metaData) <- c('ExtHistology', 'SampleID', 'Histology')
 metaData <- metaData[-1,]
-metaData
 
-# Install Homo Sapien genome annotations database for mapping gene names
-BiocManager::install("org.Hs.eg.db") 
-library("org.Hs.eg.db")
 # EntrezID to Symbol for countData
 transpCountData <- t(countData) #switches columns with rows (Samples are rows, genes are columns)
-mapping <- select(org.Hs.eg.db, keys=transpCountData[1,]), column=c("SYMBOL"), keytype="ENTREZID")
+mapping <- select(org.Hs.eg.db, keys=transpCountData[1,], column=c("SYMBOL"), keytype="ENTREZID")
 transpCountData <- t(transpCountData)
-table(transpCountData)
-table(mapping)
-mapping
-transpCountData[1:5,1:5]
 colnames(mapping) <- c('EntrezID', 'HugoID')
-
-transpCountData <- transpCountData %>%
-  left_join(., mapping, by = c("EntrezID" = "EntrezID"))
-
-# x <- merge(transpCountData, mapping, by = c("EntrezID")
-head(x)
-countData[1:5,1:5]
+countData <- merge(transpCountData, mapping, by = c("EntrezID")) # Adds HugoID to countData
+countData <- countData %>%
+  select(HugoID, everything()) # Moves HugoID column to front
+countData$EntrezID <- NULL # Deletes EntrezID column
+countData <- na.omit(countData) # Gets rid of NA values
+rownames(countData) <- countData$HugoID # makes rownames HugoID
+countData$HugoID <- NULL # Deletes HugoID because its now rowname
 
 #            Question 1
 scaledCountData <- log2(countData) #log2 scale the data
@@ -51,9 +51,14 @@ plot(density(na.omit(change))) #Omits genes with no count values
 
 
 #            Question 2
+metaData[order(row.names(metaData)), ] # Sorts metaData
+countData <- countData[,order(colnames(countData))] # Sorts countData
 ddset <- DESeqDataSetFromMatrix( 
   countData = countData, # Here we supply non-normalized count data 
   colData = metaData, # Need to clean metadata first
-  design = ~Histology ) # Need to select experimental variable to `design` 
+  design = ~ Histology) # Need to select experimental variable to `design` 
 deseq_object <- DESeq(ddset)
+
+vsd <- vst(ddset, blind=FALSE)
+plotPCA(vsd, intgroup=c("Histology"))
 
