@@ -62,3 +62,64 @@ deseq_object <- DESeq(ddset)
 vsd <- vst(ddset, blind=FALSE)
 plotPCA(vsd, intgroup=c("Histology"))
 
+#            Question 3
+if (!("DESeq2" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("DESeq2", update = FALSE)
+}
+if (!("EnhancedVolcano" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("EnhancedVolcano", update = FALSE)
+}
+if (!("apeglm" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("apeglm", update = FALSE)
+}
+
+# Attach the DESeq2 library
+library(DESeq2)
+# Attach the ggplot2 library for plotting
+library(ggplot2)
+# We will need this so we can use the pipe: %>%
+library(magrittr)
+
+set.seed(12345)
+expression_df <- vsd
+
+deseq_results <- results(deseq_object)
+
+# this is of class DESeqResults -- we want a data frame
+deseq_df <- deseq_results %>%
+  # make into data.frame
+  as.data.frame() %>%
+  # the gene names are row names -- let's make them a column for easy display
+  tibble::rownames_to_column("Gene") %>%
+  # add a column for significance threshold results
+  dplyr::mutate(threshold = padj < 0.05) %>%
+  # sort by statistic -- the highest values will be genes with
+  # higher expression in RPL10 mutated samples
+  dplyr::arrange(dplyr::desc(log2FoldChange))
+
+# We'll assign this as `volcano_plot`
+volcano_plot <- EnhancedVolcano::EnhancedVolcano(
+  deseq_df,
+  lab = deseq_df$Gene,
+  x = "log2FoldChange",
+  y = "padj",
+  pCutoff = 0.01 # Loosen the cutoff since we supplied corrected p-values
+)
+
+# Print out plot here
+volcano_plot
+
+
+
+
+
+
+
+
+
+
+
+
