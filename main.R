@@ -6,6 +6,8 @@ BiocManager::install("GEOquery")
 BiocManager::install("org.Hs.eg.db") 
 BiocManager::install("M3C")
 install.packages("ggplot2")
+install.packages("devtools")
+install.packages("ComplexHeatmap")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -13,6 +15,8 @@ library(dplyr)
 library(tidyverse)
 library(GEOquery)
 library("DESeq2")
+library(devtools)
+library(ComplexHeatmap)
 
 # Check working Directory
 getwd()
@@ -112,7 +116,8 @@ volcano_plot <- EnhancedVolcano::EnhancedVolcano(
 # Print out plot here
 volcano_plot
 
-
+#            Question 4
+Heatmap(metaData)
 
 
 
