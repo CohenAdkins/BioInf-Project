@@ -34,6 +34,27 @@ metaData <- t(metaData)
 colnames(metaData) <- c('ExtHistology', 'SampleID', 'Histology')
 metaData <- metaData[-1,]
 
+#Second way of organizing metadata automatically
+gse <- getGEO(GEO = 'GSE212377' , GSEMatrix = TRUE)
+metaData2 <- pData(phenoData(gse[[1]]))
+metaData2 <- select(metaData2, c(1,2))
+#Picking out what columns we want from metadata automatically
+metaData2<-metaData2 %>%
+  select(1,2) %>%
+  rename(Histology = title) %>%  #renaming columns
+  rename(gene = geo_accession)   #renaming columns
+#Pulling from countData, putting the counts in their own columns as well as the samples
+count.long <- countData %>%
+  gather(key = 'samples', value = 'Count', -EntrezID)
+#combining two matrixes together and matching data by its GSM value
+count.long <- count.long %>%
+  left_join(., metaData2, by = c("samples"="gene"))
+
+count.long$Count <- log10(count.long$Count) #logscaling counts
+count.long$EntrezID <- as.character(count.long$EntrezID) #EntrezId to characters, heatmap needs this.
+#picking grade 1-3 to use in plots
+Interest <- c('MENI-TB100: WHO Grade-2 histology', 'MENI-TB015: WHO Grade-3 histology','MENI-TB097: WHO Grade-1 histology')
+
 # EntrezID to Symbol for countData
 transpCountData <- t(countData) #switches columns with rows (Samples are rows, genes are columns)
 mapping <- select(org.Hs.eg.db, keys=transpCountData[1,], column=c("SYMBOL"), keytype="ENTREZID")
@@ -52,6 +73,13 @@ scaledCountData <- log2(countData) #log2 scale the data
 range <- apply(X = scaledCountData, MARGIN = 1, FUN = range)
 change <- range[2, ] - range[1, ]
 plot(density(na.omit(change))) #Omits genes with no count values
+
+count.long %>% 
+  filter(Histology  %in% Interest) %>% #filters for our hitologies
+  ggplot(., aes(x = Count, fill = Histology))+geom_density() #plots our density
+
+#Tsne plot
+tsne(countData,colvec=c('gold'))
 
 
 #            Question 2
@@ -117,7 +145,11 @@ volcano_plot <- EnhancedVolcano::EnhancedVolcano(
 volcano_plot
 
 #            Question 4
-Heatmap(metaData)
+count.long %>% 
+  filter(Histology %in% Interest) %>% #filters for our histologies
+  ggplot(., aes(x = EntrezID , y =Histology, fill = Count))+ #plots a heatmap
+  geom_tile()
+
 
 
 
