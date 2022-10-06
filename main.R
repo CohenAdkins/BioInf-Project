@@ -8,6 +8,7 @@ BiocManager::install("M3C")
 install.packages("ggplot2")
 install.packages("devtools")
 install.packages("ComplexHeatmap")
+install.packages("gprofiler2")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -17,6 +18,7 @@ library(GEOquery)
 library("DESeq2")
 library(devtools)
 library(ComplexHeatmap)
+library(gprofiler2)
 
 # Check working Directory
 getwd()
@@ -150,9 +152,20 @@ count.long %>%
   ggplot(., aes(x = EntrezID , y =Histology, fill = Count))+ #plots a heatmap
   geom_tile()
 
-
-
-
+#            Question 5 - gProfiler2 - Natalie
+gostres <- gost(query = c("X:1000:1000000", "rs17396340", "GO:0005005", "ENSG00000156103", "NLRP1"), 
+                organism = "hsapiens", ordered_query = FALSE, 
+                multi_query = FALSE, significant = TRUE, exclude_iea = FALSE, 
+                measure_underrepresentation = FALSE, evcodes = FALSE, 
+                user_threshold = 0.05, correction_method = "g_SCS", 
+                domain_scope = "annotated", custom_bg = NULL, 
+                numeric_ns = "", sources = NULL, as_short_link = FALSE)
+names(gostres)
+head(gostres$result, 3)
+names(gostres$metaData)
+gostres_link <- gost(query = c("X:1000:1000000", "rs17396340", "GO:0005005", "ENSG00000156103", "NLRP1"), 
+                     as_short_link = TRUE)
+gostplot(gostres, capped = TRUE, interactive = TRUE)
 
 
 
