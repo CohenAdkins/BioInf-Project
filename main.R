@@ -9,6 +9,8 @@ install.packages("ggplot2")
 install.packages("devtools")
 install.packages("ComplexHeatmap")
 install.packages("gprofiler2")
+install.packages("ClusterR")
+install.packages("cluster")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -19,6 +21,8 @@ library("DESeq2")
 library(devtools)
 library(ComplexHeatmap)
 library(gprofiler2)
+library(ClusterR)
+library(cluster)
 
 # Check working Directory
 getwd()
@@ -166,6 +170,59 @@ names(gostres$metaData)
 gostres_link <- gost(query = c("X:1000:1000000", "rs17396340", "GO:0005005", "ENSG00000156103", "NLRP1"), 
                      as_short_link = TRUE)
 gostplot(gostres, capped = TRUE, interactive = TRUE)
+
+
+
+
+
+
+
+#                     PROJECT 3
+
+#            Question 2a
+# apply() take 1.dataframe, 2.direction, 3.function, apply function to every row/column
+# function is for variance - var()
+# result is a vector of variance
+allVariance <- apply(scaledCountData, 1, FUN = var)
+
+# find 5000 with greatest value
+sortedVariance <- head(sort(allVariance, decreasing = TRUE), 5000)
+
+# find value of 5000th greatest variation
+cutoffValue <- sortedVariance[5000]
+
+# create new matrix that will have the 5000 most variable rows added later
+mostVariable = matrix(, nrow = 5000, ncol = 102)
+
+# iterate through mostVariable, if var() is greater than cutoff value, add row
+numRows <- nrow(scaledCountData) # find number of rows
+newIndex = 1 # index of mostVariable (will go from 1 - 5000)
+for(i in 1:numRows) { # for each row of data
+  if (is.na(allVariance[i])) { # get rid of NA values
+    # do nothing
+  }
+  else if (allVariance[i] >= cutoffValue) { # if var() is greater than or equal to cutoff
+    # this code will run 5000 times
+    currentRow <- scaledCountData[i,] # extract row from original data
+    currentRow <- as.matrix(currentRow) # convert to a matrix
+    mostVariable[newIndex,] <- currentRow # add current row to mostVariable matrix
+    newIndex <- newIndex + 1 # increment current row in mostVariable
+  }
+}
+
+# Message for group partners - use "mostVariable" as input for next parts. It is the 5,000 most variable.
+
+
+#            Question 2b-e Natalie
+#hc <- hclust(mostVariable, method = 'average')
+#plot(hc)
+
+
+
+
+
+
+
 
 
 
