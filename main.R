@@ -6,6 +6,13 @@ BiocManager::install("GEOquery")
 BiocManager::install("org.Hs.eg.db") 
 BiocManager::install("M3C")
 install.packages("ggplot2")
+install.packages("devtools")
+install.packages("ComplexHeatmap")
+install.packages("gprofiler2")
+install.packages("ClusterR")
+install.packages("cluster")
+install.packages("cluster")
+install.packages("factoextra")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -13,6 +20,13 @@ library(dplyr)
 library(tidyverse)
 library(GEOquery)
 library("DESeq2")
+library(devtools)
+library(ComplexHeatmap)
+library(gprofiler2)
+library(ClusterR)
+library(cluster)
+library(ggpubr)
+library(factoextra)
 
 # Check working Directory
 getwd()
@@ -29,6 +43,27 @@ colnames(metaData) <- metaData[2,]
 metaData <- t(metaData)
 colnames(metaData) <- c('ExtHistology', 'SampleID', 'Histology')
 metaData <- metaData[-1,]
+
+#Second way of organizing metadata automatically
+gse <- getGEO(GEO = 'GSE212377' , GSEMatrix = TRUE)
+metaData2 <- pData(phenoData(gse[[1]]))
+metaData2 <- select(metaData2, c(1,2))
+#Picking out what columns we want from metadata automatically
+metaData2<-metaData2 %>%
+  select(1,2) %>%
+  rename(Histology = title) %>%  #renaming columns
+  rename(gene = geo_accession)   #renaming columns
+#Pulling from countData, putting the counts in their own columns as well as the samples
+count.long <- countData %>%
+  gather(key = 'samples', value = 'Count', -EntrezID)
+#combining two matrixes together and matching data by its GSM value
+count.long <- count.long %>%
+  left_join(., metaData2, by = c("samples"="gene"))
+
+count.long$Count <- log10(count.long$Count) #logscaling counts
+count.long$EntrezID <- as.character(count.long$EntrezID) #EntrezId to characters, heatmap needs this.
+#picking grade 1-3 to use in plots
+Interest <- c('MENI-TB100: WHO Grade-2 histology', 'MENI-TB015: WHO Grade-3 histology','MENI-TB097: WHO Grade-1 histology')
 
 # EntrezID to Symbol for countData
 transpCountData <- t(countData) #switches columns with rows (Samples are rows, genes are columns)
@@ -49,6 +84,13 @@ range <- apply(X = scaledCountData, MARGIN = 1, FUN = range)
 change <- range[2, ] - range[1, ]
 plot(density(na.omit(change))) #Omits genes with no count values
 
+count.long %>% 
+  filter(Histology  %in% Interest) %>% #filters for our hitologies
+  ggplot(., aes(x = Count, fill = Histology))+geom_density() #plots our density
+
+#Tsne plot
+tsne(countData,colvec=c('gold'))
+
 
 #            Question 2
 metaData[order(row.names(metaData)), ] # Sorts metaData
@@ -61,4 +103,149 @@ deseq_object <- DESeq(ddset)
 
 vsd <- vst(ddset, blind=FALSE)
 plotPCA(vsd, intgroup=c("Histology"))
+
+#            Question 3
+if (!("DESeq2" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("DESeq2", update = FALSE)
+}
+if (!("EnhancedVolcano" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("EnhancedVolcano", update = FALSE)
+}
+if (!("apeglm" %in% installed.packages())) {
+  # Install this package if it isn't installed yet
+  BiocManager::install("apeglm", update = FALSE)
+}
+
+# Attach the DESeq2 library
+library(DESeq2)
+# Attach the ggplot2 library for plotting
+library(ggplot2)
+# We will need this so we can use the pipe: %>%
+library(magrittr)
+
+set.seed(12345)
+expression_df <- vsd
+
+deseq_results <- results(deseq_object)
+
+# this is of class DESeqResults -- we want a data frame
+deseq_df <- deseq_results %>%
+  # make into data.frame
+  as.data.frame() %>%
+  # the gene names are row names -- let's make them a column for easy display
+  tibble::rownames_to_column("Gene") %>%
+  # add a column for significance threshold results
+  dplyr::mutate(threshold = padj < 0.05) %>%
+  # sort by statistic -- the highest values will be genes with
+  # higher expression in RPL10 mutated samples
+  dplyr::arrange(dplyr::desc(log2FoldChange))
+
+# We'll assign this as `volcano_plot`
+volcano_plot <- EnhancedVolcano::EnhancedVolcano(
+  deseq_df,
+  lab = deseq_df$Gene,
+  x = "log2FoldChange",
+  y = "padj",
+  pCutoff = 0.01 # Loosen the cutoff since we supplied corrected p-values
+)
+
+# Print out plot here
+volcano_plot
+
+#            Question 4
+count.long %>% 
+  filter(Histology %in% Interest) %>% #filters for our histologies
+  ggplot(., aes(x = EntrezID , y =Histology, fill = Count))+ #plots a heatmap
+  geom_tile()
+
+#            Question 5 - gProfiler2 - Natalie
+gostres <- gost(query = c("X:1000:1000000", "rs17396340", "GO:0005005", "ENSG00000156103", "NLRP1"), 
+                organism = "hsapiens", ordered_query = FALSE, 
+                multi_query = FALSE, significant = TRUE, exclude_iea = FALSE, 
+                measure_underrepresentation = FALSE, evcodes = FALSE, 
+                user_threshold = 0.05, correction_method = "g_SCS", 
+                domain_scope = "annotated", custom_bg = NULL, 
+                numeric_ns = "", sources = NULL, as_short_link = FALSE)
+names(gostres)
+head(gostres$result, 3)
+names(gostres$metaData)
+gostres_link <- gost(query = c("X:1000:1000000", "rs17396340", "GO:0005005", "ENSG00000156103", "NLRP1"), 
+                     as_short_link = TRUE)
+gostplot(gostres, capped = TRUE, interactive = TRUE)
+
+
+
+
+
+
+
+#                     PROJECT 3
+
+#            Question 2a
+# apply() take 1.dataframe, 2.direction, 3.function, apply function to every row/column
+# function is for variance - var()
+# result is a vector of variance
+allVariance <- apply(scaledCountData, 1, FUN = var)
+
+# find 5000 with greatest value
+sortedVariance <- head(sort(allVariance, decreasing = TRUE), 5000)
+
+# find value of 5000th greatest variation
+cutoffValue <- sortedVariance[5000]
+
+# create new matrix that will have the 5000 most variable rows added later
+mostVariable = matrix(, nrow = 5000, ncol = 102)
+
+# iterate through mostVariable, if var() is greater than cutoff value, add row
+numRows <- nrow(scaledCountData) # find number of rows
+newIndex = 1 # index of mostVariable (will go from 1 - 5000)
+for(i in 1:numRows) { # for each row of data
+  if (is.na(allVariance[i])) { # get rid of NA values
+    # do nothing
+  }
+  else if (allVariance[i] >= cutoffValue) { # if var() is greater than or equal to cutoff
+    # this code will run 5000 times
+    currentRow <- scaledCountData[i,] # extract row from original data
+    currentRow <- as.matrix(currentRow) # convert to a matrix
+    mostVariable[newIndex,] <- currentRow # add current row to mostVariable matrix
+    newIndex <- newIndex + 1 # increment current row in mostVariable
+  }
+}
+
+# Message for group partners - use "mostVariable" as input for next parts. It is the 5,000 most variable.
+
+
+#            Question 2b-e Natalie
+#hc <- hclust(mostVariable, method = 'average')
+#plot(hc)
+
+#Question 2b- Cohen
+set.seed(123)
+res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
+fviz_cluster(res.km, mostVariable)
+
+# Question  3a
+#Heatmap of different places in the 5000 differently expressed genes
+# 2 heatmaps of two different places
+
+par(mfrow = c(1,2))
+image(t(res.km)[,nrow(res.km):1], yaxt = "n",main = "orginal data")
+set.seed(1234)
+dataMatrix <- as.matrix(mostVariable)[sample(1:12),]
+kmeansObj2 <- kmeans(dataMatrix, centers= 3)
+par(mfrow = c(1,2), mar = c(2,4,.1,.1))
+image(t(dataMatrix)[,nrow(dataMatrix):1], yaxt = "n")
+image(t(dataMatrix)[, order(kmeansObj2$cluster)], yaxt = "n")
+
+
+
+
+
+
+
+
+
+
 
