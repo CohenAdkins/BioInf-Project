@@ -226,6 +226,18 @@ set.seed(123)
 res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
 fviz_cluster(res.km, mostVariable)
 
+# Question  3a
+#Heatmap of different places in the 5000 differently expressed genes
+# 2 heatmaps of two different places
+
+par(mfrow = c(1,2))
+image(t(res.km)[,nrow(res.km):1], yaxt = "n",main = "orginal data")
+set.seed(1234)
+dataMatrix <- as.matrix(mostVariable)[sample(1:12),]
+kmeansObj2 <- kmeans(dataMatrix, centers= 3)
+par(mfrow = c(1,2), mar = c(2,4,.1,.1))
+image(t(dataMatrix)[,nrow(dataMatrix):1], yaxt = "n")
+image(t(dataMatrix)[, order(kmeansObj2$cluster)], yaxt = "n")
 
 
 
