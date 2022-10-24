@@ -11,6 +11,8 @@ install.packages("ComplexHeatmap")
 install.packages("gprofiler2")
 install.packages("ClusterR")
 install.packages("cluster")
+install.packages("cluster")
+install.packages("factoextra")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -23,6 +25,8 @@ library(ComplexHeatmap)
 library(gprofiler2)
 library(ClusterR)
 library(cluster)
+library(ggpubr)
+library(factoextra)
 
 # Check working Directory
 getwd()
@@ -217,7 +221,10 @@ for(i in 1:numRows) { # for each row of data
 #hc <- hclust(mostVariable, method = 'average')
 #plot(hc)
 
-
+#Question 2b- Cohen
+set.seed(123)
+res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
+fviz_cluster(res.km, mostVariable)
 
 
 
