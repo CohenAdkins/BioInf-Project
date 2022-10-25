@@ -226,10 +226,23 @@ mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 #hc <- hclust(mostVariable, method = 'average')
 #plot(hc)
 
-#            Question 2b-e Cohen
+            #Question 2b- Cohen
 set.seed(123)
-res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
-fviz_cluster(res.km, mostVariable)
+#10
+res.km10 <- kmeans(scale(t(mostVar10)[,-20]),5, nstart = 25)
+fviz_cluster(res.km10, t(mostVar10))
+
+#100
+res.km100 <- kmeans(scale(t(mostVar100)[,-20]),5, nstart = 25)
+fviz_cluster(res.km100, t(mostVar100))
+
+#1000
+res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),5, nstart = 25)
+fviz_cluster(res.km1000, t(mostVar1000))
+
+#5000
+res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
+fviz_cluster(res.km5000, t(mostVar5000))
 
 #            Question 2b-e Avi
 # PAM Plot 5000 Genes
