@@ -184,47 +184,89 @@ gostplot(gostres, capped = TRUE, interactive = TRUE)
 #                     PROJECT 3
 
 #            Question 2a
-# apply() take 1.dataframe, 2.direction, 3.function, apply function to every row/column
-# function is for variance - var()
-# result is a vector of variance
-allVariance <- apply(scaledCountData, 1, FUN = var)
+# Gets variance for each gene
+allVariance <- as.data.frame(apply(scaledCountData, 1, FUN = var))
+colnames(allVariance) <- c("Variance")
 
-# find 5000 with greatest value
-sortedVariance <- head(sort(allVariance, decreasing = TRUE), 5000)
+# Sorts gene variance in descending order
+sortedVariance <- as.data.frame(allVariance[order(-allVariance$Variance), , drop = FALSE])
 
-# find value of 5000th greatest variation
-cutoffValue <- sortedVariance[5000]
+# 5000 Most Variable Genes
+mostVar5000 <- merge(scaledCountData, head(sortedVariance, 5000), by=0)
+row.names(mostVar5000) <- c(mostVar5000[,1]) # Sets row names
+mostVar5000$Row.names <- NULL # Deletes Row.names column, no longer needed
+mostVar5000$Variance <- NULL # Deletes Variance column, no longer needed
 
-# create new matrix that will have the 5000 most variable rows added later
-mostVariable = matrix(, nrow = 5000, ncol = 102)
+# 10 Most Variable Genes
+mostVar10 <- merge(scaledCountData, head(sortedVariance, 10), by=0)
+row.names(mostVar10) <- c(mostVar10[,1]) # Sets row names
+mostVar10$Row.names <- NULL # Deletes Row.names column, no longer needed
+mostVar10$Variance <- NULL # Deletes Variance column, no longer needed
 
-# iterate through mostVariable, if var() is greater than cutoff value, add row
-numRows <- nrow(scaledCountData) # find number of rows
-newIndex = 1 # index of mostVariable (will go from 1 - 5000)
-for(i in 1:numRows) { # for each row of data
-  if (is.na(allVariance[i])) { # get rid of NA values
-    # do nothing
-  }
-  else if (allVariance[i] >= cutoffValue) { # if var() is greater than or equal to cutoff
-    # this code will run 5000 times
-    currentRow <- scaledCountData[i,] # extract row from original data
-    currentRow <- as.matrix(currentRow) # convert to a matrix
-    mostVariable[newIndex,] <- currentRow # add current row to mostVariable matrix
-    newIndex <- newIndex + 1 # increment current row in mostVariable
-  }
-}
+# 100 Most Variable Genes
+mostVar100 <- merge(scaledCountData, head(sortedVariance, 100), by=0)
+row.names(mostVar100) <- c(mostVar100[,1]) # Sets row names
+mostVar100$Row.names <- NULL # Deletes Row.names column, no longer needed
+mostVar100$Variance <- NULL # Deletes Variance column, no longer needed
 
-# Message for group partners - use "mostVariable" as input for next parts. It is the 5,000 most variable.
+# 1000 Most Variable Genes
+mostVar1000 <- merge(scaledCountData, head(sortedVariance, 1000), by=0)
+row.names(mostVar1000) <- c(mostVar1000[,1]) # Sets row names
+mostVar1000$Row.names <- NULL # Deletes Row.names column, no longer needed
+mostVar1000$Variance <- NULL # Deletes Variance column, no longer needed
+
+# 10000 Most Variable Genes
+mostVar10000 <- merge(scaledCountData, head(sortedVariance, 10000), by=0)
+row.names(mostVar10000) <- c(mostVar10000[,1]) # Sets row names
+mostVar10000$Row.names <- NULL # Deletes Row.names column, no longer needed
+mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 
 
 #            Question 2b-e Natalie
 #hc <- hclust(mostVariable, method = 'average')
 #plot(hc)
 
-#Question 2b- Cohen
+#            Question 2b-e Cohen
 set.seed(123)
 res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
 fviz_cluster(res.km, mostVariable)
+
+#            Question 2b-e Avi
+# PAM Clustering
+mostVariableT <- t(mostVariable)
+res.pam <- pam(mostVariableT, 2)
+fviz_cluster(res.pam, main = "PAM Cluster Plot")
+
+# PAM Plot 10 Genes
+mostVarCut10 <- mostVariableT[,1:10]
+res.pam <- pam(mostVarCut10, 4)
+fviz_cluster(res.pam, main = "PAM Cluster Plot")
+
+# PAM Plot 100 Genes
+mostVarCut100 <- mostVariableT[,1:100]
+res.pam <- pam(mostVarCut100, 3)
+fviz_cluster(res.pam, main = "PAM Cluster Plot")
+
+# PAM Plot 1000 Genes
+mostVarCut1000 <- mostVariableT[,1:1000]
+res.pam <- pam(mostVarCut1000, 2)
+fviz_cluster(res.pam, main = "PAM Cluster Plot")
+
+# Alluvial Plot
+ggplot(as.data.frame(mostVariableT),
+       aes(y = Y-axis,
+           axis1 = X-axis, axis2 = Sex, axis3 = Class)) +
+  geom_alluvium(aes(fill = Class),
+                width = 0, knot.pos = 0, reverse = FALSE) +
+  guides(fill = FALSE) +
+  geom_stratum(width = 1/8, reverse = FALSE) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
+            reverse = FALSE) +
+  scale_x_continuous(breaks = 1:3, labels = c("Survived", "Sex", "Class")) +
+  coord_flip() +
+  ggtitle("Titanic survival by class and sex")
+
+#            Question 2b-e Gabriel
 
 # Question  3a
 #Heatmap of different places in the 5000 differently expressed genes
