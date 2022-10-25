@@ -232,39 +232,28 @@ res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
 fviz_cluster(res.km, mostVariable)
 
 #            Question 2b-e Avi
-# PAM Clustering
-mostVariableT <- t(mostVariable)
-res.pam <- pam(mostVariableT, 2)
-fviz_cluster(res.pam, main = "PAM Cluster Plot")
+# PAM Plot 5000 Genes
+res.pam <- pam(t(mostVar5000), 2)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
 
 # PAM Plot 10 Genes
-mostVarCut10 <- mostVariableT[,1:10]
-res.pam <- pam(mostVarCut10, 4)
-fviz_cluster(res.pam, main = "PAM Cluster Plot")
+res.pam <- pam(t(mostVar10), 3)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
 
 # PAM Plot 100 Genes
-mostVarCut100 <- mostVariableT[,1:100]
-res.pam <- pam(mostVarCut100, 3)
-fviz_cluster(res.pam, main = "PAM Cluster Plot")
+res.pam <- pam(t(mostVar100), 2)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
 
 # PAM Plot 1000 Genes
-mostVarCut1000 <- mostVariableT[,1:1000]
-res.pam <- pam(mostVarCut1000, 2)
-fviz_cluster(res.pam, main = "PAM Cluster Plot")
+res.pam <- pam(t(mostVar1000), 3)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
 
-# Alluvial Plot
-ggplot(as.data.frame(mostVariableT),
-       aes(y = Y-axis,
-           axis1 = X-axis, axis2 = Sex, axis3 = Class)) +
-  geom_alluvium(aes(fill = Class),
-                width = 0, knot.pos = 0, reverse = FALSE) +
-  guides(fill = FALSE) +
-  geom_stratum(width = 1/8, reverse = FALSE) +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
-            reverse = FALSE) +
-  scale_x_continuous(breaks = 1:3, labels = c("Survived", "Sex", "Class")) +
-  coord_flip() +
-  ggtitle("Titanic survival by class and sex")
+# PAM Plot 10000 Genes
+res.pam <- pam(t(mostVar10000), 2)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+
+# Alluvial Plot(IN PROGRESS)
+
 
 #            Question 2b-e Gabriel
 
