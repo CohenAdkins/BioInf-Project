@@ -264,20 +264,24 @@ rect.hclust(hc10000, k = 2, border = 2:3)
             #Question 2b-e Cohen
 set.seed(123)
 #10
-res.km10 <- kmeans(scale(t(mostVar10)[,-20]),5, nstart = 25)
-fviz_cluster(res.km10, t(mostVar10))
+res.km10 <- kmeans(scale(t(mostVar10)[,-20]),3, nstart = 25)
+fviz_cluster(res.km10, t(mostVar10), main = "K-Means plot", labelsize = 0)
 
 #100
-res.km100 <- kmeans(scale(t(mostVar100)[,-20]),5, nstart = 25)
-fviz_cluster(res.km100, t(mostVar100))
+res.km100 <- kmeans(scale(t(mostVar100)[,-20]),3, nstart = 25)
+fviz_cluster(res.km100, t(mostVar100), main = "K-Means plot", labelsize = 0)
 
 #1000
-res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),5, nstart = 25)
-fviz_cluster(res.km1000, t(mostVar1000))
+res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),3, nstart = 25)
+fviz_cluster(res.km1000, t(mostVar1000), main = "K-Means plot", labelsize = 0)
 
 #5000
 res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
-fviz_cluster(res.km5000, t(mostVar5000))
+fviz_cluster(res.km5000, t(mostVar5000), main = "K-Means plot", labelsize = 0)
+
+#10,000
+res.km10000 <- kmeans(scale(t(mostVar10000)[,-20]),3, nstart = 25)
+fviz_cluster(res.km10000, t(mostVar10000), main = "K-Means plot", labelsize = 0)
 
 
 #            Question 2b-e Avi
