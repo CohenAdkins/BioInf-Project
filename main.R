@@ -365,7 +365,7 @@ ggplot(PAMAlluvDF,
 x <- merge(clusMem100, histology, by=0)
 row.names(x) <- c(x$Row.names)
 x$Row.names <- NULL
-clus100vsHist <- table(x$PAMCluster, x$Histology)
+clus100vsHist <- table(x$PAMCluster100, x$Histology)
 chisq.test(clus100vsHist)
 
 # Chi squared test of K-means 5000 Genes(3 clusters) vs Histology
@@ -387,14 +387,14 @@ chisq.test(HCclus5000vsHist)
 x3 <- merge(clusMem100, KMclusMem5000, by=0)
 row.names(x3) <- c(x3$Row.names)
 x3$Row.names <- NULL
-clus100vsKMclus5000 <- table(x3$PAMCluster, x3$KMCluster)
+clus100vsKMclus5000 <- table(x3$PAMCluster100, x3$KMCluster)
 chisq.test(clus100vsKMclus5000)
 
 # Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
 x4 <- merge(clusMem100, HCclusMem5000, by=0)
 row.names(x4) <- c(x4$Row.names)
 x4$Row.names <- NULL
-clus100vsHCclus5000 <- table(x4$PAMCluster, x4$HCCluster5000)
+clus100vsHCclus5000 <- table(x4$PAMCluster100, x4$HCCluster5000)
 chisq.test(clus100vsHCclus5000)
 
 # Chi squared test of K-means vs Hclust
@@ -409,11 +409,10 @@ chisq.test(KMclus5000vsHist)
 
 # Adjusted and Un-adjusted P-values Table
 pTable <- data.frame (first_column  = c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
-                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHist)$p.value),
-                         second_column = c("value_1", "value_2")
-)
+                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHist)$p.value))
 
 
+p.adjust(chisq.test(clus100vsKMclus5000)$p.value)
 
 
 #         Question  3a
