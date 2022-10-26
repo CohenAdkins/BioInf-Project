@@ -267,6 +267,9 @@ hc10000 <- hclust(dist(df10000), method = "average")
 plot(hc10000)
 rect.hclust(hc10000, k = 2, border = 2:3)
 
+# Creates a vector like 1 1 1 1 2 1 1 1 1 2 1 1 ... etc. based on the cluster group for hclust for 5000
+hcGroups <- cutree(hc5000, k = 2)
+
 
             #Question 2b-e Cohen
 set.seed(123)
