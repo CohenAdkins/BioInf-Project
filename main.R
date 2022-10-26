@@ -268,7 +268,7 @@ res.km10 <- kmeans(scale(t(mostVar10)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10, t(mostVar10), main = "K-Means plot", labelsize = 0)
 
 #100
-res.km100 <- kmeans(scale(t(mostVar100)[,-20]),3, nstart = 25)
+res.km100 <- kmeans(scale(t(mostVar100)[,-20]),4, nstart = 25)
 fviz_cluster(res.km100, t(mostVar100), main = "K-Means plot", labelsize = 0)
 
 #1000
