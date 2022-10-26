@@ -270,6 +270,36 @@ rect.hclust(hc10000, k = 2, border = 2:3)
 HCclusMem5000 <- as.data.frame(cutree(hc5000, k = 2))
 colnames(HCclusMem5000) <- c("HCCluster5000")
 
+# Create a vector like 1 1 1 1 2 1 1 1 1 2 1 1 ... etc. based on the cluster group
+hcGroups10 <- cutree(hc10, k = 4)
+hcGroups100 <- cutree(hc100, k = 6)
+hcGroups1000 <- cutree(hc1000, k = 2)
+hcGroups5000 <- cutree(hc5000, k = 2)
+hcGroups10000 <- cutree(hc10000, k = 2)
+
+# Create a matrix of cluster data for alluvial
+hcAlluvialMatrix <- matrix(hcGroups10, nrow = 102, ncol = 6)
+hcAlluvialMatrix[,2] <- matrix(hcGroups100)
+hcAlluvialMatrix[,3] <- matrix(hcGroups1000)
+hcAlluvialMatrix[,4] <- matrix(hcGroups5000)
+hcAlluvialMatrix[,5] <- matrix(hcGroups10000)
+
+# Add WHO Histology to hcAlluvial
+hcAlluvialMatrix[,6] <- metaData[,3]
+
+# Alluvial
+head(as.data.frame(hcAlluvialMatrix), n = 102)
+is_alluvia_form(as.data.frame(hcAlluvialMatrix), axes = 1:5, silent = TRUE)
+ggplot(as.data.frame(hcAlluvialMatrix),
+       aes(axis1 = V1, axis2 = V2, axis3 = V3, axis4 = V4, axis5 = V5)) +
+  geom_alluvium(aes(fill = V6), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("10 genes", "100 genes", "1000 genes", "5000 genes", "10000 genes"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
+  ggtitle("Hierarchical Clustering by Different Gene Amounts")
+
+
 
             #Question 2b-e Cohen
 set.seed(123)
