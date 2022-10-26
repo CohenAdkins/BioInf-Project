@@ -50,6 +50,13 @@ metaData <- t(metaData)
 colnames(metaData) <- c('ExtHistology', 'SampleID', 'Histology')
 metaData <- metaData[-1,]
 
+# Cleans metaData 10/26
+histology <- as.data.frame(metaData)
+histology$SampleID <- NULL
+histology$ExtHistology <- NULL
+Replaces <- data.frame(from = c("Not Classified", "WHO Grade-1 histology", "WHO Grade-2 histology", "WHO Grade-3 histology"), to = c("NA", "1", "2", "3"))
+histology <- FindReplace(histology, Var = "Histology", Replaces, from = "from", to = "to", exact = TRUE, vector = FALSE)
+
 #Second way of organizing metadata automatically
 gse <- getGEO(GEO = 'GSE212377' , GSEMatrix = TRUE)
 metaData2 <- pData(phenoData(gse[[1]]))
@@ -290,55 +297,66 @@ fviz_cluster(res.km10000, t(mostVar10000), main = "K-Means plot", labelsize = 0)
 # PAM Plot 5000 Genes
 res.pam <- pam(t(mostVar5000), 2)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
+clusMem5000 <- as.data.frame(res.pam$clustering)
+colnames(clusMem5000) <- c("PAMCluster5000")
 
 # PAM Plot 10 Genes
 res.pam <- pam(t(mostVar10), 3)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
+clusMem10 <- as.data.frame(res.pam$clustering)
+colnames(clusMem10) <- c("PAMCluster10")
 
 # PAM Plot 100 Genes
 res.pam <- pam(t(mostVar100), 4)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem100 <- as.data.frame(res.pam$clustering)
-colnames(clusMem100) <- c("PAMCluster")
+colnames(clusMem100) <- c("PAMCluster100")
 
 # PAM Plot 1000 Genes
 res.pam <- pam(t(mostVar1000), 3)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem1000 <- as.data.frame(res.pam$clustering)
-colnames(clusMem1000) <- c("Cluster")
+colnames(clusMem1000) <- c("PAMCluster1000")
 
 # PAM Plot 10000 Genes
 res.pam <- pam(t(mostVar10000), 2)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem10000 <- as.data.frame(res.pam$clustering)
-colnames(clusMem10000) <- c("Cluster")
+colnames(clusMem10000) <- c("PAMCluster10000")
 
 # Alluvial Plot(IN PROGRESS)
-is_alluvia_form(as.data.frame(res.pam$clustering),silent = TRUE)
-alluv1000 <- as.data.frame(res.pam$clustering)
-colnames(alluv1000) <- c("Cluster")
+PAMAlluvDF <- merge(histology, clusMem10, by=0)
+row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
+PAMAlluvDF <- merge(PAMAlluvDF, clusMem100, by=0)
+row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
+PAMAlluvDF <- merge(PAMAlluvDF, clusMem1000, by=0)
+row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
+PAMAlluvDF <- merge(PAMAlluvDF, clusMem5000, by=0)
+row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
+PAMAlluvDF <- merge(PAMAlluvDF, clusMem10000, by=0)
+row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
 
-ggplot(alluv1000,
-       aes(
-           axis1 = row.names(res.pam), axis2 = Cluster)) +
-  geom_alluvium(aes(fill = row.names(res.pam)),
+
+is_alluvia_form(as.data.frame(PAMAlluvDF), axes = 1:7, silent = TRUE)
+c <- as.data.frame(Titanic)
+
+ggplot(PAMAlluvDF,
+       aes(y = Row.names,
+           axis1 = Histology, axis2 = PAMCluster10, axis3 = PAMCluster100, axis4 = PAMCluster1000, axis5 = PAMCluster5000, axis6 = PAMCluster10000)) +
+  geom_alluvium(aes(fill = Row.names),
                 width = 0, knot.pos = 0, reverse = FALSE) +
   guides(fill = FALSE) +
   geom_stratum(width = 1/8, reverse = FALSE) +
   geom_text(stat = "stratum", aes(label = after_stat(stratum)),
             reverse = FALSE) +
-  scale_x_continuous(breaks = 1:2, labels = c("Samples", "Cluster")) +
-  ggtitle("PAM Alluvial Diagram, 1,000 Genes")
+  scale_x_continuous(breaks = 1:6, labels = c("Histology", "10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes")) +
+  ggtitle("PAM Alluvial Diagram")
 
-#       Question 4 - PAM
-
-# Cleans metaData 
-histology <- as.data.frame(metaData)
-histology$SampleID <- NULL
-histology$ExtHistology <- NULL
-Replaces <- data.frame(from = c("Not Classified", "WHO Grade-1 histology", "WHO Grade-2 histology", "WHO Grade-3 histology"), to = c("NA", "1", "2", "3"))
-histology <- FindReplace(histology, Var = "Histology", Replaces, from = "from", to = "to", exact = TRUE, vector = FALSE)
-
+#       Question 4
 #       a)
 # Chi squared test of PAM 100 Genes(4 clusters) vs Histology
 x <- merge(clusMem100, histology, by=0)
@@ -354,7 +372,7 @@ x1$Row.names <- NULL
 KMclus5000vsHist <- table(x1$Cluster, x1$Histology)
 chisq.test(KMclus5000vsHist)
 
-# Chi squared test of Hclust vs Histology
+# Chi squared test of Hclust vs Histology (NOT DONE)
 x2 <- merge(HCclusMem5000, histology, by=0)
 row.names(x2) <- c(x2$Row.names)
 x2$Row.names <- NULL
