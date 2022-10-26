@@ -187,7 +187,7 @@ gostplot(gostres, capped = TRUE, interactive = TRUE)
 
 
 
-#                     PROJECT 3
+#                     ASSIGNMENT 3
 
 #            Question 2a
 # Gets variance for each gene
@@ -268,7 +268,7 @@ res.km10 <- kmeans(scale(t(mostVar10)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10, t(mostVar10), main = "K-Means plot", labelsize = 0)
 
 #100
-res.km100 <- kmeans(scale(t(mostVar100)[,-20]),3, nstart = 25)
+res.km100 <- kmeans(scale(t(mostVar100)[,-20]),4, nstart = 25)
 fviz_cluster(res.km100, t(mostVar100), main = "K-Means plot", labelsize = 0)
 
 #1000
@@ -278,6 +278,8 @@ fviz_cluster(res.km1000, t(mostVar1000), main = "K-Means plot", labelsize = 0)
 #5000
 res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km5000, t(mostVar5000), main = "K-Means plot", labelsize = 0)
+KMclusMem5000 <- as.data.frame(res.km5000$cluster)
+colnames(KMclusMem5000) <- c("KMCluster")
 
 #10,000
 res.km10000 <- kmeans(scale(t(mostVar10000)[,-20]),3, nstart = 25)
@@ -297,7 +299,7 @@ fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 res.pam <- pam(t(mostVar100), 4)
 fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem100 <- as.data.frame(res.pam$clustering)
-colnames(clusMem100) <- c("Cluster")
+colnames(clusMem100) <- c("PAMCluster")
 
 # PAM Plot 1000 Genes
 res.pam <- pam(t(mostVar1000), 3)
@@ -338,7 +340,6 @@ Replaces <- data.frame(from = c("Not Classified", "WHO Grade-1 histology", "WHO 
 histology <- FindReplace(histology, Var = "Histology", Replaces, from = "from", to = "to", exact = TRUE, vector = FALSE)
 
 #       a)
-
 # Chi squared test of PAM 100 Genes(4 clusters) vs Histology
 x <- merge(clusMem100, histology, by=0)
 row.names(x) <- c(x$Row.names)
@@ -346,14 +347,27 @@ x$Row.names <- NULL
 clus100vsHist <- table(x$Cluster, x$Histology)
 chisq.test(clus100vsHist)
 
-# Chi squared test of K-means vs Histology
+# Chi squared test of K-means 5000 Genes(3 clusters) vs Histology
+x1 <- merge(KMclusMem5000, histology, by=0)
+row.names(x1) <- c(x1$Row.names)
+x1$Row.names <- NULL
+KMclus5000vsHist <- table(x1$Cluster, x1$Histology)
+chisq.test(KMclus5000vsHist)
 
 # Chi squared test of Hclust vs Histology
-
+x2 <- merge(HCclusMem5000, histology, by=0)
+row.names(x2) <- c(x2$Row.names)
+x2$Row.names <- NULL
+HCclus5000vsHist <- table(x2$Cluster, x2$Histology)
+chisq.test(HCclus5000vsHist)
 
 #       b)
-
 # Chi squared test of PAM 100 Genes(4 clusters) vs K-means
+x3 <- merge(clusMem100, KMclusMem5000, by=0)
+row.names(x3) <- c(x3$Row.names)
+x3$Row.names <- NULL
+clus100vsKMclus5000 <- table(x3$PAMCluster, x3$KMCluster)
+chisq.test(clus100vsKMclus5000)
 
 # Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
 
