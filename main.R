@@ -261,7 +261,7 @@ plot(hc10000)
 rect.hclust(hc10000, k = 2, border = 2:3)
 
 
-            #Question 2b- Cohen
+            #Question 2b-e Cohen
 set.seed(123)
 #10
 res.km10 <- kmeans(scale(t(mostVar10)[,-20]),5, nstart = 25)
@@ -278,6 +278,7 @@ fviz_cluster(res.km1000, t(mostVar1000))
 #5000
 res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km5000, t(mostVar5000))
+
 
 #            Question 2b-e Avi
 # PAM Plot 5000 Genes
@@ -362,11 +363,11 @@ chisq.test(clus100vsHist)
 
 
 
-# Question  3a
-#Heatmap of different places in the 5000 differently expressed genes
+#         Question  3a
+# Heatmap of different places in the 5000 differently expressed genes
 # 2 heatmaps of two different places
 
-#Hclust Heatmap
+# Hclust Heatmap
 
 my_hclust_gene <- hclust(dist(mostVar5000)) #hclust clustering
 my_gene_col <- cutree(tree = as.dendrogram(my_hclust_gene), k = 3) #Creating dendogram and cutting it for pheatmap
@@ -378,7 +379,7 @@ pheatmap(mostVar5000,  #heatmap for hclust with 3 rows/cols for dendogram
          cutree_cols = 3,
          main="Hclust clustering for 5000 variable genes") #title
 
-#KMeans Heatmap
+# K-Means Heatmap
 
 pheatmap(t(mostVar5000),  #pheatfunction + transpose
          main="Kmeans clustering for 5000 variable genes", #title
@@ -386,7 +387,7 @@ pheatmap(t(mostVar5000),  #pheatfunction + transpose
          cutree_rows = 3, #dendogram rows
          cutree_cols = 3) #dendogram columns
 
-#pam heatmap
+# PAM heatmap
 #so many packages to be able to create this one
 
 install.packages("PAMhm")
