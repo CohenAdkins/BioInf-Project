@@ -13,6 +13,10 @@ install.packages("ClusterR")
 install.packages("cluster")
 install.packages("cluster")
 install.packages("factoextra")
+install.packages("DataCombine")
+install.packages("ggalluvial")
+library("ggalluvial")
+library("DataCombine")
 install.packages("dendextend")
 library("ggplot2")
 library(M3C)
@@ -278,28 +282,85 @@ fviz_cluster(res.km5000, t(mostVar5000))
 #            Question 2b-e Avi
 # PAM Plot 5000 Genes
 res.pam <- pam(t(mostVar5000), 2)
-fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 
 # PAM Plot 10 Genes
 res.pam <- pam(t(mostVar10), 3)
-fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 
 # PAM Plot 100 Genes
-res.pam <- pam(t(mostVar100), 2)
-fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+res.pam <- pam(t(mostVar100), 4)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
+clusMem100 <- as.data.frame(res.pam$clustering)
+colnames(clusMem100) <- c("Cluster")
 
 # PAM Plot 1000 Genes
 res.pam <- pam(t(mostVar1000), 3)
-fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
+clusMem1000 <- as.data.frame(res.pam$clustering)
+colnames(clusMem1000) <- c("Cluster")
 
 # PAM Plot 10000 Genes
 res.pam <- pam(t(mostVar10000), 2)
-fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0, xlab = FALSE, ylab = FALSE)
+fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
+clusMem10000 <- as.data.frame(res.pam$clustering)
+colnames(clusMem10000) <- c("Cluster")
 
 # Alluvial Plot(IN PROGRESS)
+is_alluvia_form(as.data.frame(res.pam$clustering),silent = TRUE)
+alluv1000 <- as.data.frame(res.pam$clustering)
+colnames(alluv1000) <- c("Cluster")
+
+ggplot(alluv1000,
+       aes(
+           axis1 = row.names(res.pam), axis2 = Cluster)) +
+  geom_alluvium(aes(fill = row.names(res.pam)),
+                width = 0, knot.pos = 0, reverse = FALSE) +
+  guides(fill = FALSE) +
+  geom_stratum(width = 1/8, reverse = FALSE) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
+            reverse = FALSE) +
+  scale_x_continuous(breaks = 1:2, labels = c("Samples", "Cluster")) +
+  ggtitle("PAM Alluvial Diagram, 1,000 Genes")
+
+#       Question 4 - PAM
+
+# Cleans metaData 
+histology <- as.data.frame(metaData)
+histology$SampleID <- NULL
+histology$ExtHistology <- NULL
+Replaces <- data.frame(from = c("Not Classified", "WHO Grade-1 histology", "WHO Grade-2 histology", "WHO Grade-3 histology"), to = c("NA", "1", "2", "3"))
+histology <- FindReplace(histology, Var = "Histology", Replaces, from = "from", to = "to", exact = TRUE, vector = FALSE)
+
+#       a)
+
+# Chi squared test of PAM 100 Genes(4 clusters) vs Histology
+x <- merge(clusMem100, histology, by=0)
+row.names(x) <- c(x$Row.names)
+x$Row.names <- NULL
+clus100vsHist <- table(x$Cluster, x$Histology)
+chisq.test(clus100vsHist)
+
+# Chi squared test of K-means vs Histology
+
+# Chi squared test of Hclust vs Histology
 
 
-#            Question 2b-e Gabriel
+#       b)
+
+# Chi squared test of PAM 100 Genes(4 clusters) vs K-means
+
+# Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
+
+# Chi squared test of K-means vs Hclust
+
+
+
+# Adjusted and Un-adjusted P-values
+
+
+
+
 
 # Question  3a
 #Heatmap of different places in the 5000 differently expressed genes
