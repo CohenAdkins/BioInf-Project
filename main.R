@@ -227,33 +227,33 @@ mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 #            Question 2b-e Natalie
 
 # 10
-df10 <- as.data.frame(mostVar10)
+df10 <- as.data.frame(t(mostVar10))
 hc10 <- hclust(dist(df10), method = "average")
 plot(hc10)
-rect.hclust(hc10, k = 3, border = 2:4)
+rect.hclust(hc10, k = 4, border = 2:5)
 
 # 100
-df100 <- as.data.frame(mostVar100)
+df100 <- as.data.frame(t(mostVar100))
 hc100 <- hclust(dist(df100), method = "average")
 plot(hc100)
-rect.hclust(hc100, k = 2, border = 2:3)
+rect.hclust(hc100, k = 6, border = 2:7)
 
 # 1000
-df1000 <- as.data.frame(mostVar1000)
+df1000 <- as.data.frame(t(mostVar1000))
 hc1000 <- hclust(dist(df1000), method = "average")
-plot(hc1000, labels = FALSE)
+plot(hc1000)
 rect.hclust(hc1000, k = 2, border = 2:3)
 
 # 5000
-df5000 <- as.data.frame(mostVar5000)
+df5000 <- as.data.frame(t(mostVar5000))
 hc5000 <- hclust(dist(df5000), method = "average")
-plot(hc5000, labels = FALSE)
+plot(hc5000)
 rect.hclust(hc5000, k = 2, border = 2:3)
 
 # 10000
-df10000 <- as.data.frame(mostVar10000)
+df10000 <- as.data.frame(t(mostVar10000))
 hc10000 <- hclust(dist(df10000), method = "average")
-plot(hc10000, labels = FALSE)
+plot(hc10000)
 rect.hclust(hc10000, k = 2, border = 2:3)
 
 
