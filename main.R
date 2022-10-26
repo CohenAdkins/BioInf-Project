@@ -17,6 +17,7 @@ install.packages("DataCombine")
 install.packages("ggalluvial")
 library("ggalluvial")
 library("DataCombine")
+install.packages("dendextend")
 library("ggplot2")
 library(M3C)
 library("org.Hs.eg.db")
@@ -31,6 +32,7 @@ library(ClusterR)
 library(cluster)
 library(ggpubr)
 library(factoextra)
+library(dendextend)
 
 # Check working Directory
 getwd()
@@ -227,13 +229,55 @@ mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 
 
 #            Question 2b-e Natalie
-#hc <- hclust(mostVariable, method = 'average')
-#plot(hc)
 
-#            Question 2b-e Cohen
+# 10
+df10 <- as.data.frame(t(mostVar10))
+hc10 <- hclust(dist(df10), method = "average")
+plot(hc10)
+rect.hclust(hc10, k = 4, border = 2:5)
+
+# 100
+df100 <- as.data.frame(t(mostVar100))
+hc100 <- hclust(dist(df100), method = "average")
+plot(hc100)
+rect.hclust(hc100, k = 6, border = 2:7)
+
+# 1000
+df1000 <- as.data.frame(t(mostVar1000))
+hc1000 <- hclust(dist(df1000), method = "average")
+plot(hc1000)
+rect.hclust(hc1000, k = 2, border = 2:3)
+
+# 5000
+df5000 <- as.data.frame(t(mostVar5000))
+hc5000 <- hclust(dist(df5000), method = "average")
+plot(hc5000)
+rect.hclust(hc5000, k = 2, border = 2:3)
+
+# 10000
+df10000 <- as.data.frame(t(mostVar10000))
+hc10000 <- hclust(dist(df10000), method = "average")
+plot(hc10000)
+rect.hclust(hc10000, k = 2, border = 2:3)
+
+
+            #Question 2b- Cohen
 set.seed(123)
-res.km <- kmeans(scale(mostVariable[,-20]),10, nstart = 25)
-fviz_cluster(res.km, mostVariable)
+#10
+res.km10 <- kmeans(scale(t(mostVar10)[,-20]),5, nstart = 25)
+fviz_cluster(res.km10, t(mostVar10))
+
+#100
+res.km100 <- kmeans(scale(t(mostVar100)[,-20]),5, nstart = 25)
+fviz_cluster(res.km100, t(mostVar100))
+
+#1000
+res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),5, nstart = 25)
+fviz_cluster(res.km1000, t(mostVar1000))
+
+#5000
+res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
+fviz_cluster(res.km5000, t(mostVar5000))
 
 #            Question 2b-e Avi
 # PAM Plot 5000 Genes
