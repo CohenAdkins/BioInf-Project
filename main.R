@@ -322,15 +322,48 @@ chisq.test(clus100vsHist)
 #Heatmap of different places in the 5000 differently expressed genes
 # 2 heatmaps of two different places
 
-par(mfrow = c(1,2))
-image(t(res.km)[,nrow(res.km):1], yaxt = "n",main = "orginal data")
-set.seed(1234)
-dataMatrix <- as.matrix(mostVariable)[sample(1:12),]
-kmeansObj2 <- kmeans(dataMatrix, centers= 3)
-par(mfrow = c(1,2), mar = c(2,4,.1,.1))
-image(t(dataMatrix)[,nrow(dataMatrix):1], yaxt = "n")
-image(t(dataMatrix)[, order(kmeansObj2$cluster)], yaxt = "n")
+#Hclust Heatmap
 
+my_hclust_gene <- hclust(dist(mostVar5000)) #hclust clustering
+my_gene_col <- cutree(tree = as.dendrogram(my_hclust_gene), k = 3) #Creating dendogram and cutting it for pheatmap
+my_gene_col <- data.frame(cluster = ifelse(test = my_gene_col == 1, yes = "cluster 1", no = ifelse(test = my_gene_col ==2, yes = "cluster 2", no ="cluster 3")))#double Ifelse for 3 clusters
+
+pheatmap(mostVar5000,  #heatmap for hclust with 3 rows/cols for dendogram
+         annotation_row = my_gene_col,
+         cutree_rows = 3,
+         cutree_cols = 3,
+         main="Hclust clustering for 5000 variable genes") #title
+
+#KMeans Heatmap
+
+pheatmap(t(mostVar5000),  #pheatfunction + transpose
+         main="Kmeans clustering for 5000 variable genes", #title
+         kmeans_k = 3,  #cluster count
+         cutree_rows = 3, #dendogram rows
+         cutree_cols = 3) #dendogram columns
+
+#pam heatmap
+#so many packages to be able to create this one
+
+install.packages("PAMhm")
+install.packages("heatmapFlex")
+install.packages("Heatplus")
+install.packages("cluster")
+install.packages("devtools")  
+devtools::install_github("vfey/PAMhm")
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("Heatplus")
+library(PAMhm)
+library(heatmapFlex)
+library(Biobase)
+library(BiocGenerics)
+library(parallel)
+library(Heatplus)
+library(cluster)
+#Pam heatmap
+mat <- matrix(t(mostVar5000),nrow=102) #102 sample columns
+PAM.hm(mat, cluster.number = 3) # 3 clusters
 
 
 
