@@ -236,7 +236,6 @@ mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 
 
 #            Question 2b-e Natalie
-
 # 10
 df10 <- as.data.frame(t(mostVar10))
 hc10 <- hclust(dist(df10), method = "average")
@@ -267,6 +266,10 @@ hc10000 <- hclust(dist(df10000), method = "average")
 plot(hc10000)
 rect.hclust(hc10000, k = 2, border = 2:3)
 
+# Hclust Cluster Membership Vector for 5000 genes
+HCclusMem5000 <- as.data.frame(cutree(hc5000, k = 2))
+colnames(HCclusMem5000) <- c("HCCluster5000")
+
 # Create a vector like 1 1 1 1 2 1 1 1 1 2 1 1 ... etc. based on the cluster group
 hcGroups10 <- cutree(hc10, k = 4)
 hcGroups100 <- cutree(hc100, k = 6)
@@ -295,6 +298,7 @@ ggplot(as.data.frame(hcAlluvialMatrix),
   scale_x_discrete(limits = c("10 genes", "100 genes", "1000 genes", "5000 genes", "10000 genes"), expand = c(.05, .05)) +
   scale_fill_brewer(type = "qual", palette = "Set1") +
   ggtitle("Hierarchical Clustering by Different Gene Amounts")
+
 
 
             #Question 2b-e Cohen
@@ -391,21 +395,21 @@ ggplot(PAMAlluvDF,
 x <- merge(clusMem100, histology, by=0)
 row.names(x) <- c(x$Row.names)
 x$Row.names <- NULL
-clus100vsHist <- table(x$Cluster, x$Histology)
+clus100vsHist <- table(x$PAMCluster, x$Histology)
 chisq.test(clus100vsHist)
 
 # Chi squared test of K-means 5000 Genes(3 clusters) vs Histology
 x1 <- merge(KMclusMem5000, histology, by=0)
 row.names(x1) <- c(x1$Row.names)
 x1$Row.names <- NULL
-KMclus5000vsHist <- table(x1$Cluster, x1$Histology)
+KMclus5000vsHist <- table(x1$KMCluster, x1$Histology)
 chisq.test(KMclus5000vsHist)
 
-# Chi squared test of Hclust vs Histology (NOT DONE)
+# Chi squared test of Hclust vs Histology
 x2 <- merge(HCclusMem5000, histology, by=0)
 row.names(x2) <- c(x2$Row.names)
 x2$Row.names <- NULL
-HCclus5000vsHist <- table(x2$Cluster, x2$Histology)
+HCclus5000vsHist <- table(x2$HCCluster5000, x2$Histology)
 chisq.test(HCclus5000vsHist)
 
 #       b)
@@ -417,13 +421,27 @@ clus100vsKMclus5000 <- table(x3$PAMCluster, x3$KMCluster)
 chisq.test(clus100vsKMclus5000)
 
 # Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
+x4 <- merge(clusMem100, HCclusMem5000, by=0)
+row.names(x4) <- c(x4$Row.names)
+x4$Row.names <- NULL
+clus100vsHCclus5000 <- table(x4$PAMCluster, x4$HCCluster5000)
+chisq.test(clus100vsHCclus5000)
 
 # Chi squared test of K-means vs Hclust
+x5 <- merge(KMclusMem5000, HCclusMem5000, by=0)
+row.names(x5) <- c(x5$Row.names)
+x5$Row.names <- NULL
+KMclus5000vsHCclus5000 <- table(x5$KMCluster, x5$HCCluster5000)
+chisq.test(KMclus5000vsHist)
 
 
+# Adjust P-values
 
-# Adjusted and Un-adjusted P-values
-
+# Adjusted and Un-adjusted P-values Table
+pTable <- data.frame (first_column  = c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
+                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHist)$p.value),
+                         second_column = c("value_1", "value_2")
+)
 
 
 
