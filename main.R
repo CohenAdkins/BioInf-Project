@@ -223,8 +223,37 @@ mostVar10000$Variance <- NULL # Deletes Variance column, no longer needed
 
 
 #            Question 2b-e Natalie
-#hc <- hclust(mostVariable, method = 'average')
-#plot(hc)
+
+# 10
+df10 <- as.data.frame(mostVar10)
+hc10 <- hclust(dist(df10), method = "average")
+plot(hc10)
+rect.hclust(hc10, k = 3, border = 2:4)
+
+# 100
+df100 <- as.data.frame(mostVar100)
+hc100 <- hclust(dist(df100), method = "average")
+plot(hc100)
+rect.hclust(hc100, k = 2, border = 2:3)
+
+# 1000
+df1000 <- as.data.frame(mostVar1000)
+hc1000 <- hclust(dist(df1000), method = "average")
+plot(hc1000, labels = FALSE)
+rect.hclust(hc1000, k = 2, border = 2:3)
+
+# 5000
+df5000 <- as.data.frame(mostVar5000)
+hc5000 <- hclust(dist(df5000), method = "average")
+plot(hc5000, labels = FALSE)
+rect.hclust(hc5000, k = 2, border = 2:3)
+
+# 10000
+df10000 <- as.data.frame(mostVar10000)
+hc10000 <- hclust(dist(df10000), method = "average")
+plot(hc10000, labels = FALSE)
+rect.hclust(hc10000, k = 2, border = 2:3)
+
 
             #Question 2b- Cohen
 set.seed(123)
