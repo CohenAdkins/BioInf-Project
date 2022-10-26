@@ -357,7 +357,7 @@ fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem10000 <- as.data.frame(res.pam$clustering)
 colnames(clusMem10000) <- c("PAMCluster10000")
 
-# Alluvial Plot(IN PROGRESS)
+# PAM Alluvial Plot
 PAMAlluvDF <- merge(histology, clusMem10, by=0)
 row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
 PAMAlluvDF$Row.names <- NULL
@@ -372,22 +372,19 @@ row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
 PAMAlluvDF$Row.names <- NULL
 PAMAlluvDF <- merge(PAMAlluvDF, clusMem10000, by=0)
 row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
 
-
-is_alluvia_form(as.data.frame(PAMAlluvDF), axes = 1:7, silent = TRUE)
-c <- as.data.frame(Titanic)
-
+is_alluvia_form(as.data.frame(PAMAlluvDF), axes = 1:5, silent = TRUE)
+head(as.data.frame(PAMAlluvDF), n = 102)
 ggplot(PAMAlluvDF,
-       aes(y = Row.names,
-           axis1 = Histology, axis2 = PAMCluster10, axis3 = PAMCluster100, axis4 = PAMCluster1000, axis5 = PAMCluster5000, axis6 = PAMCluster10000)) +
-  geom_alluvium(aes(fill = Row.names),
-                width = 0, knot.pos = 0, reverse = FALSE) +
-  guides(fill = FALSE) +
-  geom_stratum(width = 1/8, reverse = FALSE) +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
-            reverse = FALSE) +
-  scale_x_continuous(breaks = 1:6, labels = c("Histology", "10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes")) +
+       aes(axis1 = PAMCluster10, axis2 = PAMCluster100, axis3 = PAMCluster1000, axis4 = PAMCluster5000, axis5 = PAMCluster10000)) +
+  geom_alluvium(aes(fill = Histology), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
   ggtitle("PAM Alluvial Diagram")
+
 
 #       Question 4
 #       a)
@@ -432,18 +429,17 @@ x5 <- merge(KMclusMem5000, HCclusMem5000, by=0)
 row.names(x5) <- c(x5$Row.names)
 x5$Row.names <- NULL
 KMclus5000vsHCclus5000 <- table(x5$KMCluster, x5$HCCluster5000)
-chisq.test(KMclus5000vsHist)
+chisq.test(KMclus5000vsHCclus5000)
 
-
-# Adjust P-values
+#       c)
+# Chi Squared Test P-values
+pVals <- c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
+                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHCclus5000)$p.value)
 
 # Adjusted and Un-adjusted P-values Table
-pTable <- data.frame (first_column  = c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
-                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHist)$p.value))
-
-
-p.adjust(chisq.test(clus100vsKMclus5000)$p.value)
-
+adjPVals <- p.adjust(pTable)
+results <- data_frame(pTable, adjPTable)
+rownames(results) <- c("PAMvHist","KMvHist","HCvHist","PAMvKM","PAMvHC","KMvHC")
 
 #         Question  3a
 # Heatmap of different places in the 5000 differently expressed genes
