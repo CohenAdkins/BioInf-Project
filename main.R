@@ -288,18 +288,20 @@ hcAlluvialMatrix[,5] <- matrix(hcGroups10000)
 
 # Add WHO Histology to hcAlluvial
 hcAlluvialMatrix[,6] <- metaData[,3]
+colnames(hcAlluvialMatrix) <- c("V1", "V2", "V3", "V4", "V5", "Histology")
 
 # Alluvial
 head(as.data.frame(hcAlluvialMatrix), n = 102)
 is_alluvia_form(as.data.frame(hcAlluvialMatrix), axes = 1:5, silent = TRUE)
 ggplot(as.data.frame(hcAlluvialMatrix),
        aes(axis1 = V1, axis2 = V2, axis3 = V3, axis4 = V4, axis5 = V5)) +
-  geom_alluvium(aes(fill = V6), width = 1/12) +
+  geom_alluvium(aes(fill = Histology), width = 1/12) +
   geom_stratum(width = 1/12, fill = "black", color = "grey") +
   geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
-  scale_x_discrete(limits = c("10 genes", "100 genes", "1000 genes", "5000 genes", "10000 genes"), expand = c(.05, .05)) +
+  scale_x_discrete(limits = c("10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes"), expand = c(.05, .05)) +
   scale_fill_brewer(type = "qual", palette = "Set1") +
-  ggtitle("Hierarchical Clustering by Different Gene Amounts")
+  ggtitle("Hierarchical Clustering by Different Gene Amounts") +
+  labs(y = "Samples")
 
 
 
