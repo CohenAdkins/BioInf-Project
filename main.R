@@ -450,27 +450,29 @@ pheatmap(t(mostVar5000),  #pheatfunction + transpose
          cutree_cols = 3) #dendogram columns
 
 # PAM heatmap
-#so many packages to be able to create this one
 
-install.packages("PAMhm")
-install.packages("heatmapFlex")
-install.packages("Heatplus")
-install.packages("cluster")
-install.packages("devtools")  
-devtools::install_github("vfey/PAMhm")
-if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install("Heatplus")
-library(PAMhm)
-library(heatmapFlex)
-library(Biobase)
-library(BiocGenerics)
-library(parallel)
-library(Heatplus)
-library(cluster)
-#Pam heatmap
-mat <- matrix(t(mostVar5000),nrow=102) #102 sample columns
-PAM.hm(mat, cluster.number = 3) # 3 clusters
+annotations <- data.frame(metaData2$Histology, metaData2$gene)
+colnames(annotations) <- c('Grade', 'Gene')
+colours <- list('Type' = c('M' = 'red', 'N' = 'blue'),
+                'Type2' = c('AT' = 'green', 'PT' = 'yellow'))
+
+hmap<-Heatmap(
+  data.matrix(mostVar5000),
+  name = "Expression for Pam clustering",
+ 
+  show_row_names = true,
+  show_column_names = FALSE,
+  cluster_rows = TRUE,
+  cluster_columns = TRUE,
+  show_column_dend = TRUE,
+  show_row_dend = TRUE,
+  row_dend_reorder = TRUE,
+  column_dend_reorder = TRUE,
+  clustering_method_rows = "ward.D2",
+  clustering_method_columns = "ward.D2",
+  width = unit(50, "mm"))
+  
+draw(hmap, heatmap_legend_side="left", annotation_legend_side="right",)
 
 #       Question 4
 #       a)
