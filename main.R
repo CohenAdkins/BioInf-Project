@@ -15,6 +15,8 @@ install.packages("cluster")
 install.packages("factoextra")
 install.packages("DataCombine")
 install.packages("ggalluvial")
+install.packages("GGally")
+library("GGally")
 library("ggalluvial")
 library("DataCombine")
 install.packages("dendextend")
@@ -306,24 +308,60 @@ set.seed(123)
 #10
 res.km10 <- kmeans(scale(t(mostVar10)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10, t(mostVar10), main = "K-Means plot", labelsize = 0)
+KMclusMem10 <- as.data.frame(res.km10$cluster)
+colnames(KMclusMem10) <- c("KMCluster10")
 
 #100
 res.km100 <- kmeans(scale(t(mostVar100)[,-20]),4, nstart = 25)
 fviz_cluster(res.km100, t(mostVar100), main = "K-Means plot", labelsize = 0)
+KMclusMem100 <- as.data.frame(res.km100$cluster)
+colnames(KMclusMem100) <- c("KMCluster100")
 
 #1000
 res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km1000, t(mostVar1000), main = "K-Means plot", labelsize = 0)
+KMclusMem1000 <- as.data.frame(res.km1000$cluster)
+colnames(KMclusMem1000) <- c("KMCluster1000")
 
 #5000
 res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km5000, t(mostVar5000), main = "K-Means plot", labelsize = 0)
 KMclusMem5000 <- as.data.frame(res.km5000$cluster)
-colnames(KMclusMem5000) <- c("KMCluster")
+colnames(KMclusMem5000) <- c("KMCluster5000")
 
 #10,000
 res.km10000 <- kmeans(scale(t(mostVar10000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10000, t(mostVar10000), main = "K-Means plot", labelsize = 0)
+KMclusMem10000 <- as.data.frame(res.km10000$cluster)
+colnames(KMclusMem10000) <- c("KMCluster10000")
+
+# K-Means Alluvial Plot
+KMAlluvDF <- merge(histology, KMclusMem10, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem100, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem1000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem5000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem10000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+
+is_alluvia_form(as.data.frame(KMAlluvDF), axes = 1:5, silent = TRUE)
+head(as.data.frame(KMAlluvDF), n = 102)
+ggplot(KMAlluvDF,
+       aes(axis1 = KMCluster10, axis2 = KMCluster100, axis3 = KMCluster1000, axis4 = KMCluster5000, axis5 = KMCluster10000)) +
+  geom_alluvium(aes(fill = Histology), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
+  ggtitle("K-Means Alluvial Diagram")
 
 
 #            Question 2b-e Avi
@@ -385,6 +423,52 @@ ggplot(PAMAlluvDF,
   scale_fill_brewer(type = "qual", palette = "Set1") +
   ggtitle("PAM Alluvial Diagram")
 
+#         Question  3a
+# Heatmap of different places in the 5000 differently expressed genes
+# 2 heatmaps of two different places
+
+# Hclust Heatmap
+
+my_hclust_gene <- hclust(dist(mostVar5000)) #hclust clustering
+my_gene_col <- cutree(tree = as.dendrogram(my_hclust_gene), k = 3) #Creating dendogram and cutting it for pheatmap
+my_gene_col <- data.frame(cluster = ifelse(test = my_gene_col == 1, yes = "cluster 1", no = ifelse(test = my_gene_col ==2, yes = "cluster 2", no ="cluster 3")))#double Ifelse for 3 clusters
+
+pheatmap(mostVar5000,  #heatmap for hclust with 3 rows/cols for dendogram
+         annotation_row = my_gene_col,
+         cutree_rows = 3,
+         cutree_cols = 3,
+         main="Hclust clustering for 5000 variable genes") #title
+
+# K-Means Heatmap
+
+pheatmap(t(mostVar5000),  #pheatfunction + transpose
+         main="Kmeans clustering for 5000 variable genes", #title
+         kmeans_k = 3,  #cluster count
+         cutree_rows = 3, #dendogram rows
+         cutree_cols = 3) #dendogram columns
+
+# PAM heatmap
+#so many packages to be able to create this one
+
+install.packages("PAMhm")
+install.packages("heatmapFlex")
+install.packages("Heatplus")
+install.packages("cluster")
+install.packages("devtools")  
+devtools::install_github("vfey/PAMhm")
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("Heatplus")
+library(PAMhm)
+library(heatmapFlex)
+library(Biobase)
+library(BiocGenerics)
+library(parallel)
+library(Heatplus)
+library(cluster)
+#Pam heatmap
+mat <- matrix(t(mostVar5000),nrow=102) #102 sample columns
+PAM.hm(mat, cluster.number = 3) # 3 clusters
 
 #       Question 4
 #       a)
@@ -432,61 +516,22 @@ KMclus5000vsHCclus5000 <- table(x5$KMCluster, x5$HCCluster5000)
 chisq.test(KMclus5000vsHCclus5000)
 
 #       c)
-# Chi Squared Test P-values
+# Chi-Squared Test P-values
 pVals <- c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
                                         chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHCclus5000)$p.value)
-
+#       d)
 # Adjusted and Un-adjusted P-values Table
-adjPVals <- p.adjust(pTable)
-results <- data_frame(pTable, adjPTable)
+adjPVals <- p.adjust(pVals)
+results <- data_frame(pVals, adjPTable)
 rownames(results) <- c("PAMvHist","KMvHist","HCvHist","PAMvKM","PAMvHC","KMvHC")
 
-#         Question  3a
-# Heatmap of different places in the 5000 differently expressed genes
-# 2 heatmaps of two different places
+#       e)
+# Enrichment Plot
+ggpairs(results)
 
-# Hclust Heatmap
 
-my_hclust_gene <- hclust(dist(mostVar5000)) #hclust clustering
-my_gene_col <- cutree(tree = as.dendrogram(my_hclust_gene), k = 3) #Creating dendogram and cutting it for pheatmap
-my_gene_col <- data.frame(cluster = ifelse(test = my_gene_col == 1, yes = "cluster 1", no = ifelse(test = my_gene_col ==2, yes = "cluster 2", no ="cluster 3")))#double Ifelse for 3 clusters
 
-pheatmap(mostVar5000,  #heatmap for hclust with 3 rows/cols for dendogram
-         annotation_row = my_gene_col,
-         cutree_rows = 3,
-         cutree_cols = 3,
-         main="Hclust clustering for 5000 variable genes") #title
 
-# K-Means Heatmap
-
-pheatmap(t(mostVar5000),  #pheatfunction + transpose
-         main="Kmeans clustering for 5000 variable genes", #title
-         kmeans_k = 3,  #cluster count
-         cutree_rows = 3, #dendogram rows
-         cutree_cols = 3) #dendogram columns
-
-# PAM heatmap
-#so many packages to be able to create this one
-
-install.packages("PAMhm")
-install.packages("heatmapFlex")
-install.packages("Heatplus")
-install.packages("cluster")
-install.packages("devtools")  
-devtools::install_github("vfey/PAMhm")
-if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install("Heatplus")
-library(PAMhm)
-library(heatmapFlex)
-library(Biobase)
-library(BiocGenerics)
-library(parallel)
-library(Heatplus)
-library(cluster)
-#Pam heatmap
-mat <- matrix(t(mostVar5000),nrow=102) #102 sample columns
-PAM.hm(mat, cluster.number = 3) # 3 clusters
 
 
 
