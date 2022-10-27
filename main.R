@@ -15,6 +15,8 @@ install.packages("cluster")
 install.packages("factoextra")
 install.packages("DataCombine")
 install.packages("ggalluvial")
+install.packages("GGally")
+library("GGally")
 library("ggalluvial")
 library("DataCombine")
 install.packages("dendextend")
@@ -306,24 +308,60 @@ set.seed(123)
 #10
 res.km10 <- kmeans(scale(t(mostVar10)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10, t(mostVar10), main = "K-Means plot", labelsize = 0)
+KMclusMem10 <- as.data.frame(res.km10$cluster)
+colnames(KMclusMem10) <- c("KMCluster10")
 
 #100
 res.km100 <- kmeans(scale(t(mostVar100)[,-20]),4, nstart = 25)
 fviz_cluster(res.km100, t(mostVar100), main = "K-Means plot", labelsize = 0)
+KMclusMem100 <- as.data.frame(res.km100$cluster)
+colnames(KMclusMem100) <- c("KMCluster100")
 
 #1000
 res.km1000 <- kmeans(scale(t(mostVar1000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km1000, t(mostVar1000), main = "K-Means plot", labelsize = 0)
+KMclusMem1000 <- as.data.frame(res.km1000$cluster)
+colnames(KMclusMem1000) <- c("KMCluster1000")
 
 #5000
 res.km5000 <- kmeans(scale(t(mostVar5000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km5000, t(mostVar5000), main = "K-Means plot", labelsize = 0)
 KMclusMem5000 <- as.data.frame(res.km5000$cluster)
-colnames(KMclusMem5000) <- c("KMCluster")
+colnames(KMclusMem5000) <- c("KMCluster5000")
 
 #10,000
 res.km10000 <- kmeans(scale(t(mostVar10000)[,-20]),3, nstart = 25)
 fviz_cluster(res.km10000, t(mostVar10000), main = "K-Means plot", labelsize = 0)
+KMclusMem10000 <- as.data.frame(res.km10000$cluster)
+colnames(KMclusMem10000) <- c("KMCluster10000")
+
+# K-Means Alluvial Plot
+KMAlluvDF <- merge(histology, KMclusMem10, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem100, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem1000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem5000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+KMAlluvDF <- merge(KMAlluvDF, KMclusMem10000, by=0)
+row.names(KMAlluvDF) <- c(KMAlluvDF$Row.names)
+KMAlluvDF$Row.names <- NULL
+
+is_alluvia_form(as.data.frame(KMAlluvDF), axes = 1:5, silent = TRUE)
+head(as.data.frame(KMAlluvDF), n = 102)
+ggplot(KMAlluvDF,
+       aes(axis1 = KMCluster10, axis2 = KMCluster100, axis3 = KMCluster1000, axis4 = KMCluster5000, axis5 = KMCluster10000)) +
+  geom_alluvium(aes(fill = Histology), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
+  ggtitle("K-Means Alluvial Diagram")
 
 
 #            Question 2b-e Avi
@@ -357,7 +395,7 @@ fviz_cluster(res.pam, main = "PAM Cluster Plot", labelsize = 0)
 clusMem10000 <- as.data.frame(res.pam$clustering)
 colnames(clusMem10000) <- c("PAMCluster10000")
 
-# Alluvial Plot(IN PROGRESS)
+# PAM Alluvial Plot
 PAMAlluvDF <- merge(histology, clusMem10, by=0)
 row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
 PAMAlluvDF$Row.names <- NULL
@@ -372,78 +410,18 @@ row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
 PAMAlluvDF$Row.names <- NULL
 PAMAlluvDF <- merge(PAMAlluvDF, clusMem10000, by=0)
 row.names(PAMAlluvDF) <- c(PAMAlluvDF$Row.names)
+PAMAlluvDF$Row.names <- NULL
 
-
-is_alluvia_form(as.data.frame(PAMAlluvDF), axes = 1:7, silent = TRUE)
-c <- as.data.frame(Titanic)
-
+is_alluvia_form(as.data.frame(PAMAlluvDF), axes = 1:5, silent = TRUE)
+head(as.data.frame(PAMAlluvDF), n = 102)
 ggplot(PAMAlluvDF,
-       aes(y = Row.names,
-           axis1 = Histology, axis2 = PAMCluster10, axis3 = PAMCluster100, axis4 = PAMCluster1000, axis5 = PAMCluster5000, axis6 = PAMCluster10000)) +
-  geom_alluvium(aes(fill = Row.names),
-                width = 0, knot.pos = 0, reverse = FALSE) +
-  guides(fill = FALSE) +
-  geom_stratum(width = 1/8, reverse = FALSE) +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum)),
-            reverse = FALSE) +
-  scale_x_continuous(breaks = 1:6, labels = c("Histology", "10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes")) +
+       aes(axis1 = PAMCluster10, axis2 = PAMCluster100, axis3 = PAMCluster1000, axis4 = PAMCluster5000, axis5 = PAMCluster10000)) +
+  geom_alluvium(aes(fill = Histology), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("10 Genes", "100 Genes", "1000 Genes", "5000 Genes", "10000 Genes"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
   ggtitle("PAM Alluvial Diagram")
-
-#       Question 4
-#       a)
-# Chi squared test of PAM 100 Genes(4 clusters) vs Histology
-x <- merge(clusMem100, histology, by=0)
-row.names(x) <- c(x$Row.names)
-x$Row.names <- NULL
-clus100vsHist <- table(x$PAMCluster100, x$Histology)
-chisq.test(clus100vsHist)
-
-# Chi squared test of K-means 5000 Genes(3 clusters) vs Histology
-x1 <- merge(KMclusMem5000, histology, by=0)
-row.names(x1) <- c(x1$Row.names)
-x1$Row.names <- NULL
-KMclus5000vsHist <- table(x1$KMCluster, x1$Histology)
-chisq.test(KMclus5000vsHist)
-
-# Chi squared test of Hclust vs Histology
-x2 <- merge(HCclusMem5000, histology, by=0)
-row.names(x2) <- c(x2$Row.names)
-x2$Row.names <- NULL
-HCclus5000vsHist <- table(x2$HCCluster5000, x2$Histology)
-chisq.test(HCclus5000vsHist)
-
-#       b)
-# Chi squared test of PAM 100 Genes(4 clusters) vs K-means
-x3 <- merge(clusMem100, KMclusMem5000, by=0)
-row.names(x3) <- c(x3$Row.names)
-x3$Row.names <- NULL
-clus100vsKMclus5000 <- table(x3$PAMCluster100, x3$KMCluster)
-chisq.test(clus100vsKMclus5000)
-
-# Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
-x4 <- merge(clusMem100, HCclusMem5000, by=0)
-row.names(x4) <- c(x4$Row.names)
-x4$Row.names <- NULL
-clus100vsHCclus5000 <- table(x4$PAMCluster100, x4$HCCluster5000)
-chisq.test(clus100vsHCclus5000)
-
-# Chi squared test of K-means vs Hclust
-x5 <- merge(KMclusMem5000, HCclusMem5000, by=0)
-row.names(x5) <- c(x5$Row.names)
-x5$Row.names <- NULL
-KMclus5000vsHCclus5000 <- table(x5$KMCluster, x5$HCCluster5000)
-chisq.test(KMclus5000vsHist)
-
-
-# Adjust P-values
-
-# Adjusted and Un-adjusted P-values Table
-pTable <- data.frame (first_column  = c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
-                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHist)$p.value))
-
-
-p.adjust(chisq.test(clus100vsKMclus5000)$p.value)
-
 
 #         Question  3a
 # Heatmap of different places in the 5000 differently expressed genes
@@ -491,6 +469,69 @@ library(cluster)
 #Pam heatmap
 mat <- matrix(t(mostVar5000),nrow=102) #102 sample columns
 PAM.hm(mat, cluster.number = 3) # 3 clusters
+
+#       Question 4
+#       a)
+# Chi squared test of PAM 100 Genes(4 clusters) vs Histology
+x <- merge(clusMem100, histology, by=0)
+row.names(x) <- c(x$Row.names)
+x$Row.names <- NULL
+clus100vsHist <- table(x$PAMCluster100, x$Histology)
+chisq.test(clus100vsHist)
+
+# Chi squared test of K-means 5000 Genes(3 clusters) vs Histology
+x1 <- merge(KMclusMem5000, histology, by=0)
+row.names(x1) <- c(x1$Row.names)
+x1$Row.names <- NULL
+KMclus5000vsHist <- table(x1$KMCluster, x1$Histology)
+chisq.test(KMclus5000vsHist)
+
+# Chi squared test of Hclust vs Histology
+x2 <- merge(HCclusMem5000, histology, by=0)
+row.names(x2) <- c(x2$Row.names)
+x2$Row.names <- NULL
+HCclus5000vsHist <- table(x2$HCCluster5000, x2$Histology)
+chisq.test(HCclus5000vsHist)
+
+#       b)
+# Chi squared test of PAM 100 Genes(4 clusters) vs K-means
+x3 <- merge(clusMem100, KMclusMem5000, by=0)
+row.names(x3) <- c(x3$Row.names)
+x3$Row.names <- NULL
+clus100vsKMclus5000 <- table(x3$PAMCluster100, x3$KMCluster)
+chisq.test(clus100vsKMclus5000)
+
+# Chi squared test of PAM 100 Genes(4 clusters) vs Hclust
+x4 <- merge(clusMem100, HCclusMem5000, by=0)
+row.names(x4) <- c(x4$Row.names)
+x4$Row.names <- NULL
+clus100vsHCclus5000 <- table(x4$PAMCluster100, x4$HCCluster5000)
+chisq.test(clus100vsHCclus5000)
+
+# Chi squared test of K-means vs Hclust
+x5 <- merge(KMclusMem5000, HCclusMem5000, by=0)
+row.names(x5) <- c(x5$Row.names)
+x5$Row.names <- NULL
+KMclus5000vsHCclus5000 <- table(x5$KMCluster, x5$HCCluster5000)
+chisq.test(KMclus5000vsHCclus5000)
+
+#       c)
+# Chi-Squared Test P-values
+pVals <- c(chisq.test(clus100vsHist)$p.value, chisq.test(KMclus5000vsHist)$p.value, chisq.test(HCclus5000vsHist)$p.value, 
+                                        chisq.test(clus100vsKMclus5000)$p.value, chisq.test(clus100vsHCclus5000)$p.value, chisq.test(KMclus5000vsHCclus5000)$p.value)
+#       d)
+# Adjusted and Un-adjusted P-values Table
+adjPVals <- p.adjust(pVals)
+results <- data_frame(pVals, adjPTable)
+rownames(results) <- c("PAMvHist","KMvHist","HCvHist","PAMvKM","PAMvHC","KMvHC")
+
+#       e)
+# Enrichment Plot
+ggpairs(results)
+
+
+
+
 
 
 
